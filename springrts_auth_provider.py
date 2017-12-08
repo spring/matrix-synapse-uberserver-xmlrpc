@@ -28,7 +28,6 @@ class SpringRTSAuthProvider(object):
             defer.returnValue(False)
 
         self.log.info("Got password check for " + user_id)
-        data = {'user': {'id': user_id, 'password': password}}
 
         localpart = user_id.split(":", 1)[0][1:]
 
