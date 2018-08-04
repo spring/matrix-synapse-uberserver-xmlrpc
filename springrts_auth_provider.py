@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from twisted.internet import defer, threads
+from twisted.internet import defer
 
 import xmlrpclib
 import logging
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 logger = logging.getLogger(__name__)
 
 
 class SpringRTSAuthProvider(object):
-    __version__ = "0.1"
+    __version__ = "0.2"
 
     def __init__(self, config, account_handler):
 
@@ -21,36 +21,52 @@ class SpringRTSAuthProvider(object):
         self.xmlrpc_uri = config.uri
         self.proxy = xmlrpclib.ServerProxy(self.xmlrpc_uri)
         self.account_info = None
+        self.domain = config.domain
 
     @defer.inlineCallbacks
     def check_password(self, user_id, password):
+
         if not password:
             defer.returnValue(False)
 
-        self.log.info("Got password check for " + user_id)
+        self.log.debug("Got password check for {}".format(user_id))
 
         localpart = user_id.split(":", 1)[0][1:]
+
+        # get user info from uberserver
 
         self.account_info = self.proxy.get_account_info(localpart, password)
 
         auth = self.account_info.get("status")
+        username = self.account_info.get("username")
+        accountid = self.account_info.get("accountid")
+
         if auth:
-            self.log.info("User not authenticated")
+            self.log.debug("User not authenticated")
             defer.returnValue(False)
 
-        self.log.info("User %s authenticated", user_id)
+        self.log.debug("User {} authenticated".format(username))
 
         registration = False
 
-        if not (yield self.account_handler.check_user_exists(user_id)):
-            self.log.info("User %s does not exist yet, creating...", user_id)
+        matrix_account = "{}:{}".format(accountid, self.domain)
 
-            user_id, access_token = (yield self.account_handler.register(localpart=localpart))
+        if not (yield self.account_handler.check_user_exists(matrix_account)):
+
+            self.log.debug("User {} does not exist yet, creating...".format(accountid))
+
+            user_id, access_token = (yield self.account_handler.register(localpart=accountid))
+
+            store = yield self.account_handler.hs.get_profile_handler().store
+            yield store.set_profile_displayname(localpart, username)
+
             registration = True
 
-            self.log.info("Registration based on XMLRPC data was successful for {}".format(user_id))
+            self.log.debug("Registration based on XMLRPC data was successful for {}".format(accountid))
+
         else:
-            self.log.info("User {} already exists, registration skipped".format(user_id))
+
+            self.log.debug("User {} already exists, registration skipped".format(accountid))
 
         defer.returnValue(True)
 
