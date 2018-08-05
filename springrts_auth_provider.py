@@ -58,8 +58,8 @@ class SpringRTSAuthProvider(object):
 
             matrix_account, access_token = (yield self.account_handler.register(localpart=matrix_id))
 
-            # store = yield self.account_handler.hs.get_profile_handler().store
-            # yield store.set_profile_displayname(user_id, username)
+            store = yield self.account_handler.hs.get_profile_handler().store
+            yield store.set_profile_displayname(matrix_id, username)
 
             registration = True
 
