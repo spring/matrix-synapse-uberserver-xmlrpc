@@ -40,6 +40,7 @@ class SpringRTSAuthProvider(object):
         auth = self.account_info.get("status")
         username = self.account_info.get("username")
         accountid = self.account_info.get("accountid")
+        matrix_id = "{}{}".format("id", accountid)
 
         if auth:
             self.log.debug("User not authenticated")
@@ -49,26 +50,27 @@ class SpringRTSAuthProvider(object):
 
         registration = False
 
-        matrix_account = "{}:{}".format(accountid, self.domain)
+        matrix_account = "@{}:{}".format(matrix_id, self.domain)
 
         if not (yield self.account_handler.check_user_exists(matrix_account)):
 
-            self.log.debug("User {} does not exist yet, creating...".format(accountid))
+            self.log.debug("User {} does not exist yet, creating...".format(matrix_id))
 
-            user_id, access_token = (yield self.account_handler.register(localpart=accountid))
+            matrix_account, access_token = (yield self.account_handler.register(localpart=matrix_id))
 
-            store = yield self.account_handler.hs.get_profile_handler().store
-            yield store.set_profile_displayname(localpart, username)
+            # store = yield self.account_handler.hs.get_profile_handler().store
+            # yield store.set_profile_displayname(user_id, username)
 
             registration = True
 
-            self.log.debug("Registration based on XMLRPC data was successful for {}".format(accountid))
+            self.log.debug("Registration based on XMLRPC data was successful for {}".format(matrix_account))
 
         else:
 
-            self.log.debug("User {} already exists, registration skipped".format(accountid))
+            self.log.debug("User {} already exists, registration skipped".format(matrix_account))
 
-        defer.returnValue(True)
+        yield self.account_handler.validate_login(matrix_account, None)
+        # defer.returnValue(True)
 
     @staticmethod
     def parse_config(config):
@@ -85,6 +87,7 @@ class SpringRTSAuthProvider(object):
         ])
 
         xmlrpc_config.uri = config["uri"]
+        xmlrpc_config.domain = config["domain"]
 
         return xmlrpc_config
 
