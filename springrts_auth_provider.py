@@ -50,7 +50,7 @@ class SpringRTSAuthProvider(object):
 
         registration = False
 
-        matrix_account = "@{}:{}".format(matrix_id, self.domain)
+        matrix_account = "@{}:{}".format(matrix_id, self.account_handler.hs.hostname)
 
         if not (yield self.account_handler.check_user_exists(matrix_account)):
 
@@ -59,7 +59,7 @@ class SpringRTSAuthProvider(object):
             matrix_account, access_token = (yield self.account_handler.register(localpart=matrix_id))
 
             store = yield self.account_handler.hs.get_profile_handler().store
-            yield store.set_profile_displayname(matrix_id, username)
+            yield store.set_profile_displayname(user_id, username)
 
             registration = True
 
@@ -69,7 +69,6 @@ class SpringRTSAuthProvider(object):
 
             self.log.debug("User {} already exists, registration skipped".format(matrix_account))
 
-        # yield self.account_handler.validate_login(matrix_account, None)
         defer.returnValue(True)
 
     @staticmethod
