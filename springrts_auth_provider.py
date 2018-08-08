@@ -40,7 +40,7 @@ class SpringRTSAuthProvider(object):
         auth = self.account_info.get("status")
         username = self.account_info.get("username")
         accountid = self.account_info.get("accountid")
-        matrix_id = "{}{}".format("id", accountid)
+        matrix_id = "{}_{}".format("id", accountid)
 
         if auth:
             self.log.debug("User not authenticated")
@@ -54,12 +54,12 @@ class SpringRTSAuthProvider(object):
 
         if not (yield self.account_handler.check_user_exists(matrix_account)):
 
-            self.log.debug("User {} does not exist yet, creating...".format(matrix_id))
+            self.log.debug("User {} does not exist yet, creating...".format(matrix_account))
 
             matrix_account, access_token = (yield self.account_handler.register(localpart=matrix_id))
 
             store = yield self.account_handler.hs.get_profile_handler().store
-            yield store.set_profile_displayname(user_id, username)
+            yield store.set_profile_displayname(matrix_account, username)
 
             registration = True
 
