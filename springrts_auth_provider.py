@@ -23,8 +23,16 @@ class SpringRTSAuthProvider(object):
         self.account_info = None
         self.domain = config.domain
 
+    @staticmethod
+    def get_supported_login_types():
+        return {"com.springrts.lobby_login": ("secret1", "secret2")}
+
     @defer.inlineCallbacks
-    def check_password(self, user_id, password):
+    def check_auth(self, user_id, login_type, login_dict):
+
+        log.debug(user_id)
+        log.debug(login_type)
+        log.debug(login_dict)
 
         if not password:
             defer.returnValue(False)
@@ -44,7 +52,7 @@ class SpringRTSAuthProvider(object):
 
         if auth:
             self.log.debug("User not authenticated")
-            defer.returnValue(False)
+            yield defer.returnValue(None)
 
         self.log.debug("User {} authenticated".format(username))
 
@@ -69,7 +77,7 @@ class SpringRTSAuthProvider(object):
 
             self.log.debug("User {} already exists, registration skipped".format(matrix_account))
 
-        defer.returnValue((matrix_account, None))
+        yield defer.returnValue((matrix_account, None))
 
     @staticmethod
     def parse_config(config):
