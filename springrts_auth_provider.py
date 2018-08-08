@@ -69,7 +69,7 @@ class SpringRTSAuthProvider(object):
 
             self.log.debug("User {} already exists, registration skipped".format(matrix_account))
 
-        defer.returnValue(True)
+        defer.returnValue((matrix_account, None))
 
     @staticmethod
     def parse_config(config):
