@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from twisted.internet import defer
+from synapse.api.constants import LoginType
 
 import xmlrpclib
 import logging
@@ -18,28 +19,31 @@ class SpringRTSAuthProvider(object):
         self.log = logger
 
         self.account_handler = account_handler
+        self.auth_handler = self.account_handler._auth_handler
+
         self.xmlrpc_uri = config.uri
         self.proxy = xmlrpclib.ServerProxy(self.xmlrpc_uri)
         self.account_info = None
-        self.domain = config.domain
 
     @staticmethod
     def get_supported_login_types():
-        return {"com.springrts.lobby_login": ("secret1", "secret2")}
+        return {LoginType.PASSWORD: ("password",)}
 
     @defer.inlineCallbacks
     def check_auth(self, user_id, login_type, login_dict):
 
-        log.debug(user_id)
-        log.debug(login_type)
-        log.debug(login_dict)
+        self.log.debug("got password login for username {}".format(user_id))
+        self.log.debug(login_dict)
+
+        password = login_dict["password"]
 
         if not password:
             defer.returnValue(False)
 
         self.log.debug("Got password check for {}".format(user_id))
 
-        localpart = user_id.split(":", 1)[0][1:]
+        # localpart = user_id.split(":", 1)[0][1:]
+        localpart = user_id
 
         # get user info from uberserver
 
@@ -77,7 +81,7 @@ class SpringRTSAuthProvider(object):
 
             self.log.debug("User {} already exists, registration skipped".format(matrix_account))
 
-        yield defer.returnValue((matrix_account, None))
+        yield defer.returnValue(matrix_account)
 
     @staticmethod
     def parse_config(config):
@@ -94,7 +98,8 @@ class SpringRTSAuthProvider(object):
         ])
 
         xmlrpc_config.uri = config["uri"]
-        xmlrpc_config.domain = config["domain"]
+        xmlrpc_config.user_id = ""
+        xmlrpc_config.password = ""
 
         return xmlrpc_config
 
