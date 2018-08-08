@@ -9,4 +9,5 @@ password_providers:
     config:
       enabled: true:w
       endpoint: "http://localhost:8300/"
+      domain: "springrts.com"
 ```
