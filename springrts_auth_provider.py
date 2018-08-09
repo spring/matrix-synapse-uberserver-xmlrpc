@@ -63,15 +63,19 @@ class SpringRTSAuthProvider(object):
 
         matrix_account = "@{}:{}".format(matrix_id, self.account_handler.hs.hostname)
 
+        store = yield self.account_handler.hs.get_profile_handler().store
+
         if not (yield self.account_handler.check_user_exists(matrix_account)):
 
             self.log.debug("User {} does not exist yet, creating...".format(matrix_account))
 
             matrix_account, access_token = (yield self.account_handler.register(localpart=matrix_id))
 
-            store = yield self.account_handler.hs.get_profile_handler().store
-            yield store.set_profile_displayname(matrix_id, username)
-
+            # Update user Display Name
+            store.set_profile_displayname(matrix_id, username)
+            profile = yield store.get_profileinfo(localpart)
+            user_dir_handler = self.account_handler.hs.get_user_directory_handler()
+            yield user_dir_handler.handle_local_profile_change(matrix_account, profile)
             registration = True
 
             self.log.debug("Registration based on XMLRPC data was successful for {}".format(matrix_account))
