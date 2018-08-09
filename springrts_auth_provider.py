@@ -33,7 +33,6 @@ class SpringRTSAuthProvider(object):
     def check_auth(self, user_id, login_type, login_dict):
 
         self.log.debug("got password login for username {}".format(user_id))
-        self.log.debug(login_dict)
 
         password = login_dict["password"]
 
