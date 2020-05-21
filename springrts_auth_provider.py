@@ -3,16 +3,16 @@
 from twisted.internet import defer
 from synapse.api.constants import LoginType
 
-import xmlrpclib
+import xmlrpc.client
 import logging
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 logger = logging.getLogger(__name__)
 
 
 class SpringRTSAuthProvider(object):
-    __version__ = "0.3"
+    __version__ = "0.4"
 
     def __init__(self, config, account_handler):
 
@@ -22,7 +22,7 @@ class SpringRTSAuthProvider(object):
         self.auth_handler = self.account_handler._auth_handler
 
         self.xmlrpc_uri = config.uri
-        self.proxy = xmlrpclib.ServerProxy(self.xmlrpc_uri)
+        self.proxy = xmlrpc.client.ServerProxy(self.xmlrpc_uri)
         self.account_info = None
 
     @staticmethod
