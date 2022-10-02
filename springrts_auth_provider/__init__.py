@@ -6,13 +6,13 @@ from synapse.api.constants import LoginType
 import xmlrpc.client
 import logging
 
-__version__ = "0.4.0"
+__version__ = "0.2.0"
 
 logger = logging.getLogger(__name__)
 
 
 class SpringRTSAuthProvider(object):
-    __version__ = "0.4"
+    __version__ = "0.2"
 
     def __init__(self, config, account_handler):
 
@@ -41,12 +41,16 @@ class SpringRTSAuthProvider(object):
 
         self.log.debug("Got password check for {}".format(user_id))
 
-        # localpart = user_id.split(":", 1)[0][1:]
-        localpart = user_id
+        if user_id.startswith("@id_"):
+           localpart = user_id.split(":", 1)[0][4:]
+           lobbyuser= self.proxy.get_username(localpart)
+           self.log.debug("got username from uberserver: {}".format(lobbyuser))
+        else:
+           lobbyuser = user_id
 
         # get user info from uberserver
 
-        self.account_info = self.proxy.get_account_info(localpart, password)
+        self.account_info = self.proxy.get_account_info(lobbyuser, password)
 
         auth = self.account_info.get("status")
         username = self.account_info.get("username")
