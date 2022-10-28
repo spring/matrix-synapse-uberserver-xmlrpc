@@ -8,6 +8,6 @@ password_providers:
   - module: "spring_auth_provider.SpringRTSAuthProvider"
     config:
       enabled: true
-      endpoint: "http://localhost:8300/"
+      endpoint: "http://127.0.0.1:8300/"
       domain: "springrts.com"
 ```
